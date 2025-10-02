@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Layers, Sparkles, Github, ExternalLink } from 'lucide-react';
 import { TaskInput } from './components/TaskInput';

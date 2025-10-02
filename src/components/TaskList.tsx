@@ -22,7 +22,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TaskCard } from './TaskCard';
 import type { Task } from '../types/task';
-import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 
 interface SortableTaskProps {
   task: Task;
