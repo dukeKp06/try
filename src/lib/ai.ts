@@ -4,7 +4,11 @@ import type { Task } from '../types/task';
 async function listAvailableModels(apiKey: string) {
   try {
     console.log('Attempting to list available models...');
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models`, {
+      headers: {
+        'x-goog-api-key': apiKey,
+      },
+    });
     
     if (!response.ok) {
       console.error('Error listing models:', response.status, response.statusText);
@@ -54,12 +58,13 @@ export const generateSubtasks = async (goal: string): Promise<Task[]> => {
       6. Review and refactor code`;
 
       console.log('Sending prompt to Gemini API directly');
-      console.log('Request URL:', `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent?key=${apiKey}`);
+      console.log('Request URL:', `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent`);
       
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
         },
         body: JSON.stringify({
           contents: [{
@@ -184,7 +189,7 @@ export const generateSubtasks = async (goal: string): Promise<Task[]> => {
 // Export a function to demonstrate the direct API call
 export const getDirectApiUrl = (): string => {
   if (apiKey) {
-    return `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent?key=${apiKey}`;
+    return `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent (with x-goog-api-key header)`;
   }
   return 'API key not available';
 };
@@ -201,12 +206,13 @@ export const generateCodeSuggestion = async (taskTitle: string): Promise<string>
       Task: ${taskTitle}`;
 
       console.log('Sending prompt to Gemini API directly for code suggestion');
-      console.log('Request URL:', `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent?key=${apiKey}`);
+      console.log('Request URL:', `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent`);
       
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
         },
         body: JSON.stringify({
           contents: [{
@@ -224,8 +230,16 @@ export const generateCodeSuggestion = async (taskTitle: string): Promise<string>
       });
 
       if (!response.ok) {
-        console.error('Gemini API error:', response.status, response.statusText);
-        throw new Error(`API request failed with status ${response.status}`);
+        // Try to read the error response body for more details
+        let errorDetails = '';
+        try {
+          const errorText = await response.text();
+          errorDetails = `. Error details: ${errorText}`;
+        } catch (e) {
+          errorDetails = `. Could not read error details.`;
+        }
+        console.error('Gemini API error:', response.status, response.statusText, errorDetails);
+        throw new Error(`API request failed with status ${response.status}${errorDetails}`);
       }
 
       const result = await response.json();
